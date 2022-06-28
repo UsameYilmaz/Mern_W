@@ -1,0 +1,505 @@
+1-) APİ CLİENT
+    Api klasorü ile backend tarafını;
+    Client klasöür ile de front end tarafını uygulanacaktır.
+
+2-) Package.JSON dosyası oluşturulması
+    PS C:\Users\kasib\OneDrive\Masaüstü\MERN> cd api
+    PS C:\Users\kasib\OneDrive\Masaüstü\MERN\api> npm init
+    package.json dosyası olusturuldu. el ile tek tek yazılır yada enter diyerek geçersin onun yerine 
+    npm init --y diyerek de package.json dosyası olusuturlabilir.
+
+3-) Gerekli dependencies leri eklenmesi
+    Package.json a eklenemsi gereken dependency ler vardır bunun içinde ;
+    PS C:\Users\kasib\OneDrive\Masaüstü\MERN\api> npm i express mongoose cors body-parser nodemon
+    express => backendimize uygulayacagımız frameworkumuz.
+    mongoose => mongoDB veritabanı ile bağlantı sağlayacağımız bir kütüphanedir.
+    cors kütüphaneside faqrklı domain ve portlara giriş yapabilmemizi kolaylaştırır.
+    body-parser => gönderdiğimiz requestleri parçalayan onlardan gerekli bilgileri almamızı sağlayan kütüphanedir.
+    nodemon => normade her seferinde durdurup yeniden çalıştırmamız gerekir fakat nnodemon kullanırsak server sürekli çalışır
+    Gerekli kütüphaneler package.jsonda görüleceği üzere gelmiştir: 
+    OUTPUT: 
+    "dependencies": {
+        "body-parser": "^1.20.0",
+        "cors": "^2.8.5",
+        "express": "^4.18.1",
+        "mongoose": "^6.3.8",
+        "nodemon": "^2.0.16"
+    }
+
+4-) SERVER'I nasıl çalıştırıcaz ?node server.js
+    PS C:\Users\kasib\OneDrive\Masaüstü\MERN\api> node server.js 
+
+
+5-) Serverda bir değişiklik yapıldıgında ctrl+c ile çıkış yapıp tekrar çalıştırmak gerekiyor her seferinde bu işlem bizi yorar.PEKİ BUNUN İÇİN NAPILMALI??
+    Bu durum için nodemon yüklemiştik. Şimd bu durumu nasıl düzelticez onu görücez:
+    package.json a gelip script içerisine 
+    "start": "nodemon server.js" yazılaaktır. ve npm start denilerek çalıstırıalcaktır. cunku zaten startın karşılığı nodemon server.js dir.
+    PS C:\Users\kasib\OneDrive\Masaüstü\MERN\api> npm start
+
+6-) Şemaoluşturullması ve export edilmesi BookModel.js
+    Mongooes kütüphanesi kullanılarak biz mongoDB veritabanında bir alan oluşturucaz bu alana eklemeler yapıcaz. Bizim şemaya ihtiyacımız olacak. 
+    SQL tabanlı değildir.MongoDB sql de tablo sistemleri vardır. mongo db de doküman sistemi vardır. NOSQL diye geçeri. Bİzim bir model olusturmamız gerekir. 
+    Olusturdugumuz bu modole göre veritabanına veriyi atıcaz.  
+    BU sebebden dolayı;
+    Api kalsörü içerisinde models klasörü ve bu klasöründe içerisinde BookModel.js dosyası oluşturuldu.
+    ("Projelerimizde birden fazla model olusturabiliriz.")
+    BookModel.js
+
+    //const oluşturulacak_şema_ismi  = new mongoose.Schema
+    //mongoose.Schemadan yeni bir şema olusturucaz.
+
+    const bookSchema = new mongoose.Schema({
+        //veritabanına atıcağım dökümanda bir bookName olsun ve bu bookName'in type 'ı string olsun. 
+        //required olsun yani girilmesi zorunlu olsun. 
+        //ve unique olsun yani aynı isimli birden fazla kitap girilemesin.
+        //veritabanına atacağım ikinci ifadem author yani yazar olsun.
+        bookName: {
+            type: String,
+            required: true,
+            unique: true
+        },
+        author: {
+            type: String,
+            required: true,
+            //bu unique olmamalı cunku bir yazarın birden fazla kitabı olabilir.
+        },
+        //sayısı önemlidir.
+        quantity: {
+            type: Number,//*
+            required: true,
+        },
+        department: {
+            type: String,
+            required: true,
+        },
+        comments: {
+            type: String,
+        }
+    },//şemanın altında birde timestamp olsun bu da bize, veritabanında verinin oluşturulma tarihini 
+        //veya değiştirme tarihini vericektir.
+        { timestamps: true })
+
+    //şemayı import edilmesi gerekiyor ki başka yerde kullanabilelim.
+    //   module.exports=mongoose.model("Veritabanın_ismi_ne_olmasını_istiyorsak","oluşturulacak_şema_ismi=yukarıda bookSchema demiştik")
+    module.exports = mongoose.model("BookStore", bookSchema)
+        //BookStore isimli bir model olusturduk ve bunu da exports etmiş tolduk.
+
+7-)mongoose kütüphanesiyle bağlantının kurulması(VERİTABANI BAĞLANTISI)
+    //moongose.connect(databasemizin bulundugu url adresi yazılmalıdır.)
+    //    mongoose.connect("mongodb+srv://KULLANICIADI:ŞİFRE@cluster0.g9uvonr.mongodb.net/DATABASE_ADININ_YAZILMASI?retryWrites=true&w=majority", {
+
+    mongoose.connect("mongodb+srv://TEST:123asdqwer@cluster0.g9uvonr.mongodb.net/books?retryWrites=true&w=majority", {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    })
+    .then(console.log("connected to database"))
+    .catch((err)=>console.log(err))
+    //bağlantı gerçekleştikten sonra(then)
+
+
+8-) Veritabanına ürün(kitap) eklenmesi
+    //************************************************************************************************************
+    //************************************************************************************************************
+    //************************************************************************************************************
+
+    //post metodu ile gönderme işlemi yazparız. 
+    //hanngi url adresine eriştiğimizde post işlemi yapılacak ?
+    ///app.post('/hanngi url adresine eriştiğimizde post işlemi yapılacak',asenkron bir fonksiyon olusturucaz)
+    //request ve response parametrelerine sahip bir arraw fonksiyon olusturucaz
+    app.post('/newbook', async (req, res) => {
+        //gerçekleşip gerçekleşmeyeceği belli olmayan işlemlerde try catch kullanılmalıdır.
+        try {
+            //yeni bir kitap nesnesi oluşssun istiyorum
+            // const newBook =
+            //bu ktap nesnesi peki neyden oluşacak onemli olan o ;
+            const newBook = new BookStore({
+                //oluşturdugum_yeni_kitabın_bookName_alanı:yaptımız requesttin body alanı.bookName i
+                bookName: req.body.bookName,
+                author: req.body.author,
+                quantity: req.body.quantity,
+                department: req.body.department,
+                comments:reg.body.comments
+            })
+
+            //bu ıoluşturdugumuz yeni nesnemizi newBook database e yerleşti.KAYDOLDU
+            //await => newBook.save(); in olmasını bekler.
+            //await newBook.save();
+            const book=await newBook.save()//teyit almak amaçlı br değişkene atayaım
+            res.status(200).json(book)//book nesnesini jsona çevrip başarılı olup olmadıgını bana göster diyorum.    
+        } catch (err) {
+            console.log(err)
+        }
+    })
+
+//RESTAPİ oluşturduk.
+//POSTMAN
+
+9-)POST REQUEST İşlemi
+    VScode editörümüze bir extentions indiricez. "thunder client." Postman gibi
+
+    Serverda biz nereye gönderiyoruz ? /newbook
+    http://localhost:5000//newbook
+    body kısmına geliyoruz. bu body ye ne yazıcaz requestimin body sini yazıcam json verisi şeklinde yazıcam.
+
+    {
+        "bookName":"Suc ve Ceza",
+        "author":"Fyodor Dostoyevski ",
+        "quantity":12,
+        "department":"psychology and drama",
+        "comments":"Suç ve Ceza"
+    }
+
+10-)GET REQUEST İşlemi
+    database deki verileri çekmek için get request işleemi yapıcaz.
+    app.get('/books', (req, res) => {
+        BookStore.find()//database atmıs oldugumuz dokumanları buldurmuş oluyoruz.
+            .then(books => res.json(books))//iççerisindeki butun verileri jsona çevirip response olarak dönmesini sağladım.
+
+    })
+
+11-)DELETE işlemi(CRUD OPERATİONS)
+    app.delete('/delete/:id', (req, res) => {
+        const id = req.params.id;
+        BookStore.findByIdAndDelete({ _id: id }, (err) => {
+            if(!err) {
+                console.log("book deleted");
+            }else{
+                console.log(err);
+            }
+        })//findByIdAndDelete moongose kütüphansesinde bir metotdur.
+    })
+
+
+12-)React ile frontend tarafının olusturulması;
+    PS C:\Users\kasib\OneDrive\Masaüstü\MERN\client> npx create-react-app .
+    package.json dosyasına girip   "private": true, dan sonra
+    "proxy": "http://localhost:5000", eklendi. bunu niye yaptık peki ?
+    exxpressjs ile olusturugumuz backendimiz localhost 5000 de olustugu için, reacteaki request işlemlerini 5000 portunda çalışan baackendimize göndericek.
+
+    HEAD İÇERİSİNE EKLENİR:
+    CSS linki client/public/index.html 
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    Yapıştırıyoruz.
+    Bootstrap classlarını rahatlıkla kullanım içindir.
+
+    BODY İÇERİSİNE EKLENİR:
+    Bootstrapde olusturdugumuz tasarımı, bazı script işlemleri için. 
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js" integrity="sha384-Xe+8cL9oJa6tN/veChSP7q+mnSPaj5Bcu9mPX5F5xIGE0DVittaqT5lorf0EI7Vk" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.min.js" integrity="sha384-kjU+l4N0Yf4ZOJErLsIcvOU2qSb74wXpOhqTvwVx3OElZRweTnQ6d31fXEoRD1Jy" crossorigin="anonymous"></script>
+    Eklenir.
+
+    PS C:\Users\kasib\OneDrive\Masaüstü\MERN\client> npm i axios
+    axios kütüphanesi de fetch işlemi için gereklidir
+
+    React-router-dom Eklenmesi --- sayfa geçişi işlemi sağlanılacaktır.
+
+
+13-)Responsive Tasarım ve Navbar
+    APP.js ye div içerisine  yerleştirildi.
+    jsx de class className olarak yazılmalıdır.
+
+ <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div className="container-fluid">
+          <a className="navbar-brand" href="#">Kasibeyaz</a>
+          <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span className="navbar-toggler-icon"></span>
+          </button>
+          <div className="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+              <li className="nav-item">
+                <a className="nav-link active" aria-current="page" href="#">Books</a>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link" href="#">Add Book</a>
+              </li>
+              <li className="nav-item dropdown">
+                <a className="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Departments
+                </a>
+                <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <li><a className="dropdown-item" href="#">History & Criticim</a></li>
+                  <li><a className="dropdown-item" href="#">Religious</a></li>
+                  <li><hr className="dropdown-divider"/></li>
+                  <li><a className="dropdown-item" href="#">Music</a></li>
+                </ul>
+              </li>
+              <li className="nav-item">
+                <a className="nav-link disabled">Disabled</a>
+              </li>
+            </ul>
+            <form className="d-flex" role="search">
+              <input className="form-control me-2" type="search" placeholder="Search" aria-label="Search"/>
+                <button className="btn btn-outline-success" type="submit">Search</button>
+            </form>
+          </div>
+        </div>
+      </nav>
+
+14-) Add book form
+    kitap eklemek için bir form olusturulacaktır.
+    AddBook.js dir.
+    import React from "react";
+
+    export default function AddBook() {
+    return (
+        <div>
+        <div className="container w-50 mt-5 border border-secondary">
+            <form style={{ padding: "20px 20px 10px 20px" }}>
+            <div className="form-floating mb-3">
+                <input
+                type="text"
+                name="bookName"
+                className="form-control"
+                id="floatingInput"
+                placeholder="Book Name"
+                />
+                <label for="floatingInput">Book Name</label>
+            </div>
+            <div className="form-floating mb-3">
+                <input
+                type="text"
+                name="author"
+                className="form-control"
+                id="floatingInput"
+                placeholder="Author"
+                />
+                <label for="floatingInput">Author</label>
+            </div>
+            <div className="form-floating mb-3">
+                <input
+                type="number"
+                name="quantity"
+                className="form-control"
+                id="floatingInput"
+                placeholder="Quantity"
+                />
+                <label for="floatingInput">Quantity</label>
+            </div>
+            <div className="form-floating mb-3">
+                <select
+                className="form-select"
+                id="floatingSelect"
+                aria-label="Floating label select example"
+                >
+                <option selected>Department</option>
+                <option value="History & Criticim">History & Criticim</option>
+                <option value="Religious">Religious</option>
+                <option value="Music">Music</option>
+                </select>
+                <label for="floatingSelect">Select Book Department</label>
+            </div>
+            <div className="form-floating mb-3">
+                <textarea
+                className="form-control"
+                placeholder="Leave a comment here"
+                id="floatingTextarea"
+                ></textarea>
+                <label for="floatingTextarea">Comments</label>
+            </div>
+            <button type="button" className="btn btn-info">Add Book</button>
+            </form>
+        </div>
+        </div>
+    );
+    }
+
+
+15-) Tablo Oluşturma ve Verilerin Getirilmesi;
+    Books.js table olusturulmasıydı.
+
+    import React from "react";
+
+    export default function Books() {
+    return (
+        <div className="container mt-5">
+        <table className="table table-hover table-dark">
+            <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Book Name</th>
+                <th scope="col">Author</th>
+                <th scope="col">Department</th>
+                <th scope="col">Quantity</th>
+                <th scope="col" colSpan="3">Process</th>
+                {/* Process de ekle silme geri ver düğmesi olacak. 3  bölümden oluşacak yani  */}
+            </tr>
+            </thead>
+        </table>
+        </div>
+    );
+    }
+
+15_1)Databaseden verilerin alınması(çekilmesi(fetch))
+    //veritabanından verileri alıcam ve buradan ekranı yansıtılacaktır.
+    import React, { useState, useEffect } from "react";
+
+    15_1_1-)App.jsde return üzerine yazıldı.
+        //gelecek olan kitaplar nesne olarak gelicek bunları array içerisinde tutucam.
+        const [books, setBooks] = useState([]);
+
+        //çekme işlemi için fetch kullanıcaz. Bunu da useEffect hook u ile kullanıcaz.
+        useEffect(() => {
+            // DATABASEDEN BÜTÜN DÖKÜMANLARI KİTAPLARI BOOKS İSİMLİ URL ADRESİNE DENK GELİCEK ŞEKİLDE ALMIŞTIK.
+            // ////GET REQUEST İŞLEMİ
+            // app.get("/books", (req, res) => {
+            //   BookStore.find() //database atmıs oldugumuz dokumanları buldurmuş oluyoruz.
+            //     .then((books) => res.json(books)); //iççerisindeki butun verileri jsona çevirip response olarak dönmesini sağladım.
+            // });
+            fetch("/books") // LOCALHOST 5000 ADRESİNDEKİ BOOKS URL SİNE GİRİP BURADAN BÜTÜNDATAYI FETCH ETTİM
+            .then((res) => {//GELEN DATA BANA RES ŞEKLİNDE GELDİ
+                if (res.ok) {//EĞERKİ GELEN CEVAP OKEY İSE YANİ GELEN BİR CEVAP VARSA
+                return res.json();//BUNU JSONA ÇEVİR
+                }
+            })
+            .then((jsonRes) => setBooks(jsonRes)); //
+        });
+    15_1_2-)ONDAN SONRADA BOOKS COMPONENTİNE STATE GÖNDERİLDİ.
+      {/* //books stateini kullanıcaz. books statetini Books componentine gönderdik  */}
+      <Books books={books}></Books>
+    15_1_3-)Book.js ye verileri göstere bilmek için bir t body eklendi
+
+        <tbody>
+          {books.map((book, index) => {
+            return (
+              <tr key={index}>
+                <td>{book._id}</td>
+                <td>{book.bookName}</td>
+                <td>{book.author}</td>
+                <td>{book.quantity}</td>
+                <td>{book.department}</td>
+                <td>
+                  <button type="button" class="btn btn-danger">
+                    DELETE
+                  </button>
+                </td>
+                <td>
+                  <button type="button" class="btn btn-primary">
+                    LEND
+                  </button>
+                </td>
+                <td>
+                  <button type="button" class="btn btn-success">
+                    BACK
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+
+16-) DATABASE'E YENİ KİTAP EKLENMESİ
+    bookname author quantiy Department coomment değerlerini girip
+    yani yeni kitabın özelliklerinin girilip databaseye eklenmesi
+
+    FORMDA YAZILAN VERİLERİ STATE GÖNDERİYORUM. 
+    STATEDEN DE VERİTABANINA GÖNDERİECEK.
+16-1)Formda yazılan verilerin state aktarılması;
+    app.js de bir state olusturuldu;
+    const [book, setBook] = useState({
+        bookName: "",
+        author: "",
+        quantity: "",
+        department: "",
+        comments: ""
+    })
+
+16-1_2) AddBook.js de her input içerisine value ve onChange eklendi
+    value={book.bookName} onChange ={handleChange}
+
+16-1_3) handleChange ile yazılan veriyi alınması ve state atılması işlemi yapılıyor
+    handleChange metodunu AddBook componentine gönderilir.
+    AddBook içerisinde de alınmas
+
+16-2) STATEDEN DE VERİTABANINA GÖNDERİECEK.
+
+    const addBook = (e) => {
+        e.preventDefault(); // butona basıldııgnda her seferinde ekranın yenilenmemesi içindir.
+        const newBook={
+        bookName:book.bookName,//state e bookName ve diğer değerler atanmıstı şimdi onları da atama işlemi yapıyorum.
+        author:book.author,
+        quantity:book.quantity,
+        department:book.department,
+        comments:book.comments
+        }
+        axios.post('/newbook',newBook)//axios ile göndericez //server.js de newbook url si ne gönderip. orası zaten database e ekliyordu.
+        alert('The Book ${book.bookName} is addded')
+        setBook({bookName:"",author:"",quantity:"",department:"",comments:""})//formun tekrardan boş hale gelebilmesi için
+    }
+
+16_2_1)AddBook componentine addBook gönderilmesi
+      <AddBook book={book} handleChange={handleChange} addBook={addBook}></AddBook>
+
+16_2_2)butona on clik eventi ile eklenmesi ve çağırılması[addBook];
+          <button type="button" onClick={addBook} className="btn btn-info">Add Book</button>
+        export default function AddBook({ book , handleChange , addBook }) {
+
+
+17-)DELETE UPDATE İŞLEMLERİ
+    APP.JS DE
+    //DELETEBOOK
+    //silinecek olan kitabın id si üzerinden işlem yapıcam.
+    const deleteBook = (id) => {
+        axios.delete('/delete/' + id)//hangi url ye gitsn
+        alert('The Book with id ${id} is deleted')
+    }
+    //LENDBOOK
+    const lendBook = (id) => {//bir update islemi aslında
+        axios.put('/lend/' + id)//hangi url ye gitsn
+        alert('The Book with id ${id} is lended')
+    }
+    //BACKBOOK
+    const backBook = (id) => {//axios kütüphanesinde update işlemleri için put kullanılmaktadır.
+        axios.put('/back/' + id)//hangi url ye gitsn
+        alert('The Book with id ${id} is back')
+    }
+
+    Books.js e gönderildi
+        <Books books={books} lendBook={lendBook} deleteBook={deleteBook} backBook={backBook}></Books>
+    
+    Books.js e metodlar ekledni.
+        export default function Books({ books, deleteBook, lendBook, backBook }) {
+
+    Books.js de de onClick yazıldı.
+                  <button onClick={()=>deleteBook(book._id)} type="button" class="btn btn-danger">
+                    DELETE
+                  </button>
+
+
+18-) React Routing İşlemi
+
+    daha önce react router dom indirmiştik
+      <Router>
+        <Routes>
+          <Route exact path="/addbook"
+            element={<AddBook book={book} handleChange={handleChange} addBook={addBook}></AddBook>
+            }
+          >
+
+          </Route>
+          {/* book stateini AddBook a gönderilmesi lazım tabiki */}
+
+        </Routes>
+        <Routes>
+          <Route exact path="/" element={<Books books={books} lendBook={lendBook} deleteBook={deleteBook} backBook={backBook}></Books>
+          }>
+            {/* ÇEKİLEN DATAYI  BOOKS COMPONENETİNE GÖNDERİLMESİ */}
+            {/* //books stateini kullanıcaz. books statetini Books componentine gönderdik  */}
+
+          </Route>
+        </Routes>
+        <Routes>
+          <Route exact path="/books" element={<Books books={books} lendBook={lendBook} deleteBook={deleteBook} backBook={backBook}></Books>
+          }>
+            {/* ÇEKİLEN DATAYI  BOOKS COMPONENETİNE GÖNDERİLMESİ */}
+            {/* //books stateini kullanıcaz. books statetini Books componentine gönderdik  */}
+
+          </Route>
+        </Routes>
+      </Router>
+
+
+
+
+
+
+
